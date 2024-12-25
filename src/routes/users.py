@@ -15,8 +15,8 @@ user_service = UserService()
 
 
 @router.get("")
-async def list_users(filters: CommonFilters):
-    pass
+async def list_users(filters: CommonFilters, session: AsyncSession = Depends(get_db)):
+    return await user_service.list_users(session=session, filters=filters)
 
 
 @router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
