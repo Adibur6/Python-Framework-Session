@@ -15,3 +15,4 @@ SessionAsync = async_sessionmaker(engine, expire_on_commit=False)
 class Base(AsyncAttrs, DeclarativeBase):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    modified_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
