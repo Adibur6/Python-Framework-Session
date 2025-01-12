@@ -10,12 +10,11 @@ class UserService:
         return f"#{value}#"
 
     async def create_user(self, session: AsyncSession, body: UserCreatePayload):
-        body_dict = body.model_dump()
-        del body_dict["password"]
-        user = User(**body_dict)
+        user_data = body.model_dump(exclude={"password"})
+        user = User(**user_data)
         user.password_hash = self.hash_password(body.password)
         session.add(user)
-        await session.flush()
+        await session.commit()
         return user
 
     async def list_users(self, session: AsyncSession, filters: CommonFilters):
