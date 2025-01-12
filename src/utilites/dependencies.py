@@ -7,7 +7,7 @@ from src.models import SessionAsync
 security = HTTPBasic()
 
 async def get_db():
-    session = SessionAsync()
+    session =  SessionAsync()
     try:
         yield session
     except:

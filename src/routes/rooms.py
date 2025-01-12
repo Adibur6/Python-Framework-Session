@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status, Depends
-from src.dependencies import get_requesting_user
+from src.utilites.dependencies import get_requesting_user
 
 router = APIRouter(prefix="/api/rooms", dependencies=[Depends(get_requesting_user)])
 

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.schemas.common import CommonFilters
 from src.schemas.user import UserCreatePayload, UserResponse
-from src.dependencies import get_db
+from src.utilites.dependencies import get_db
 
 
 from ..services.users import UserService
