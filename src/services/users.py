@@ -51,7 +51,7 @@ class UserService:
         session.refresh(user)
         
         return user
-    async def login_user(self, session: AsyncSession, body: UserLoginPayload):
+    async def check_login_user(self, session: AsyncSession, body: UserLoginPayload):
         stm = select(User).where(User.email == body.email)
         res = await session.execute(stm)
         user = res.scalar_one_or_none()
