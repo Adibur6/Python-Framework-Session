@@ -1,18 +1,22 @@
-from sqlalchemy.orm import mapped_column, Mapped , relationship
-from sqlalchemy import String, ForeignKey
+from sqlalchemy.orm import mapped_column, Mapped, relationship
+from sqlalchemy import String, Integer, ForeignKey
 from typing import List
-from .user import User
-from .base import Base
-from .message import Message
+from  src.models.base import Base
 
 class Room(Base):
     __tablename__ = "rooms"
 
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str] = mapped_column(String(100), nullable=False)
-    owner_id: Mapped[int] = mapped_column(int, ForeignKey("users.id"), nullable=False)
-    users: Mapped[List['User']] = relationship("User", back_populates="room")
-    messages: Mapped[List['Message']] = relationship("Message", back_populates="room")
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+
+    users: Mapped[List["User"]] = relationship(
+        "User",
+        secondary="user_room_association",
+        back_populates="rooms",
+    )
+    messages: Mapped[List["Message"]] = relationship("Message", back_populates="room")
 
     def __repr__(self):
-        return f"<Room(name={self.name}, description={self.description}, owner_id={self.owner_id})>"
+        return f"<Room(id={self.id}, name={self.name}, description={self.description})>"

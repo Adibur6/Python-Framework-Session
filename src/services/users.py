@@ -13,11 +13,13 @@ class UserService:
         return hash_value.decode("utf-8")
 
     async def create_user(self, session: AsyncSession, body: UserCreatePayload):
-        user_data = body.model_dump()
-        user = User(**user_data)
-        user.password_hash = self.hash_password(body.password)
+        user_data = body.model_dump(exclude={"password"})
+        hash_password = self.hash_password(body.password)
+        user = User(**user_data, password_hash=hash_password)
         session.add(user)
+       
         await session.commit()
+        print(user,type(user))
         return user
 
     async def list_users(self, session: AsyncSession, filters: CommonFilters):
