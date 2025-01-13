@@ -9,7 +9,7 @@ from src.utilites.dependencies import get_db, set_user_token, delete_user_token
 from ..services.users import UserService
 
 
-router = APIRouter(prefix="/api/users")
+router = APIRouter(prefix="/api/users", tags=["users"])
 
 user_service = UserService()
 

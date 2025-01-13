@@ -1,11 +1,11 @@
 from typing import Annotated
-from fastapi import Depends
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends, Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.exceptions import HTTPException
 from src.models import SessionAsync
 import uuid
 import datetime
-security = HTTPBasic()
+bearer_scheme = HTTPBearer()
 
 async def get_db():
     session =  SessionAsync()
@@ -36,12 +36,11 @@ def delete_user_token(token):
     return False
     
     
-async def get_requesting_user(
-        credentials: Annotated[HTTPBasicCredentials, Depends(security)],
-        session: AsyncSession = Depends(get_db)):
-    # TODO
-    # find if any user exists in the database with email == credentials.username
-    # check if user.password_hash == userservice.hash_password(credentials.password)
-    # if true, return the user
-    # else raise exception
-    pass
+
+async def authenticate_user(
+    credentials: HTTPAuthorizationCredentials = Security(bearer_scheme)
+) -> int:
+    token = credentials.credentials
+    if token not in user_session or user_session[token]["expires_in"] < datetime.datetime.now():
+        raise HTTPException(status_code=401, detail="Invalid or missing token")
+    return user_session[token].get("user_id")
