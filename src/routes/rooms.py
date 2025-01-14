@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, Security, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException
 from src.utilites.dependencies import authenticate_user
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.schemas.common import CommonFilters
@@ -16,7 +16,7 @@ from src.services.messages import MessageService
 - PATCH /api/rooms/{room_id}/messages/{message_id}: for updating a message
 
 '''
-router = APIRouter(prefix="/api/rooms", dependencies=[Security(authenticate_user)], tags=["rooms"])
+router = APIRouter(prefix="/api/rooms", tags=["rooms"])
 
 room_service = RoomService()
 message_service = MessageService()

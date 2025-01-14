@@ -1,12 +1,11 @@
 from typing import Annotated
-from fastapi import Depends, Security
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Header
 from fastapi.exceptions import HTTPException
 from src.models import SessionAsync
+from fastapi import Request
 import uuid
 import datetime
-bearer_scheme = HTTPBearer()
-
+from typing import Optional
 async def get_db():
     session =  SessionAsync()
     try:
@@ -18,15 +17,21 @@ async def get_db():
         await session.commit()
     finally:
         await session.close()
-
+        
+# in memory session storage
 user_session = {}
 
-def set_user_token(user):
+def set_user_token(user, request, response):
+    if request.cookies.get("token"):
+        token = request.cookies.get("token")
+        delete_user_token(token)
     token = str(uuid.uuid4())
     user_session[token] = {
         "user_id": user.id,
         "expires_in": datetime.datetime.now() + datetime.timedelta(minutes=30)
     }
+    response.set_cookie("token", token)
+
     return {"token": token}
 
 def delete_user_token(token):
@@ -38,9 +43,18 @@ def delete_user_token(token):
     
 
 async def authenticate_user(
-    credentials: HTTPAuthorizationCredentials = Security(bearer_scheme)
-) -> int:
-    token = credentials.credentials
-    if token not in user_session or user_session[token]["expires_in"] < datetime.datetime.now():
+    request: Request,
+    x_auth_token: Optional[str] = Header(None, alias="X-Auth-Token")
+) -> str:
+    token: Optional[str] = x_auth_token
+    if not token:
+        token = request.cookies.get("token")
+    
+    if not token or token not in user_session:
         raise HTTPException(status_code=401, detail="Invalid or missing token")
-    return user_session[token].get("user_id")
+    
+    session_data = user_session[token]
+    if session_data["expires_in"] < datetime.datetime.now():
+        raise HTTPException(status_code=401, detail="Token has expired")
+    
+    return session_data.get("user_id")

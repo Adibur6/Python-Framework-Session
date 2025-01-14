@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.schemas.common import CommonFilters
 from src.schemas.user import UserCreatePayload, UserResponse, UserUpdatePayload, UserLoginPayload, UserLoginResponse
 from src.utilites.dependencies import get_db, set_user_token, delete_user_token
-
+from fastapi import Request, Response
 from ..services.users import UserService
 
 
@@ -48,12 +48,12 @@ async def update_user(user_id: str, body: UserUpdatePayload, session: AsyncSessi
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.post("/login",response_model=UserLoginResponse, status_code=status.HTTP_200_OK)
-async def login_user(body: UserLoginPayload, session: AsyncSession = Depends(get_db)):
+async def login_user(request: Request,response: Response,body: UserLoginPayload, session: AsyncSession = Depends(get_db)):
     try:
         user = await user_service.check_login_user(session=session, body=body)
         if user is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-        return set_user_token(user)
+        return set_user_token(user,request,response)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
