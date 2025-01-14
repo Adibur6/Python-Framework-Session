@@ -50,7 +50,7 @@ class UserService:
             user.password_hash = self.hash_password(body.password)
         
         await session.commit()
-        session.refresh(user)
+        await session.refresh(user)
         
         return user
     async def check_login_user(self, session: AsyncSession, body: UserLoginPayload):

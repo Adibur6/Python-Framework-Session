@@ -5,7 +5,8 @@ from src.schemas.common import CommonFilters
 from src.utilites.dependencies import get_db
 from src.schemas.room import RoomCreatePayload, RoomResponse
 from src.services.rooms import RoomService
-
+from src.schemas.message import MessageCreatePayload, MessageResponse
+from src.services.messages import MessageService
 '''
 - POST /api/rooms: Create new room login required
 - GET /api/rooms: List rooms login required
@@ -18,6 +19,7 @@ from src.services.rooms import RoomService
 router = APIRouter(prefix="/api/rooms", dependencies=[Security(authenticate_user)], tags=["rooms"])
 
 room_service = RoomService()
+message_service = MessageService()
 
 @router.get("", response_model=list[RoomResponse], status_code=status.HTTP_200_OK)
 async def list_rooms(filters: CommonFilters, user_id: str = Depends(authenticate_user), session: AsyncSession = Depends(get_db)):
@@ -56,18 +58,39 @@ async def delete_room(room_id: str, user_id: str = Depends(authenticate_user), s
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-@router.post("/{room_id}/messages")
-async def post_message(room_id: str, user_id: str = Depends(authenticate_user), session: AsyncSession = Depends(get_db)):
-    return {"message": "Post message"}
+@router.post("/{room_id}/messages",response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
+async def post_message(body: MessageCreatePayload, room_id: str, user_id: str = Depends(authenticate_user), session: AsyncSession = Depends(get_db)):
+    try:
+        message = await message_service.create_message(session=session, body=body, user_id=user_id, room_id=room_id)
+        if message is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+        return message
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) 
 
-@router.get("/{room_id}/messages")
+@router.get("/{room_id}/messages", response_model=list[MessageResponse], status_code=status.HTTP_200_OK)
 async def list_messages(filters: CommonFilters,room_id: str, user_id: str = Depends(authenticate_user),  session: AsyncSession = Depends(get_db)):
-    return {"message": "List messages"}
+    try:
+        return await message_service.list_messages(session=session, filters=filters, room_id=room_id, user_id=user_id)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.delete("/{room_id}/messages/{message_id}")
 async def delete_message(room_id: str, message_id: str, user_id: str = Depends(authenticate_user), session: AsyncSession = Depends(get_db)):
-    return {"message": "Delete message"}
+    try:
+        message = await message_service.delete_message(session=session, message_id=message_id, user_id=user_id, room_id=room_id)
+        if message is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+        return message
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.patch("/{room_id}/messages/{message_id}")
-async def update_message(room_id: str, message_id: str, user_id: str = Depends(authenticate_user), session: AsyncSession = Depends(get_db)):
-    return {"message": "Update message"}
+async def update_message(body:MessageCreatePayload, room_id: str, message_id: str, user_id: str = Depends(authenticate_user), session: AsyncSession = Depends(get_db)):
+    try:
+        message = await message_service.update_message(session=session, message_id=message_id, body=body, user_id=user_id, room_id=room_id)
+        if message is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+        return message
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
