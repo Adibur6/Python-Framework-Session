@@ -6,10 +6,9 @@ from  src.models.base import Base
 class Room(Base):
     __tablename__ = "rooms"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str] = mapped_column(String(100), nullable=False)
-    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id: Mapped[str] = mapped_column(String(50), ForeignKey("users.id",ondelete="CASCADE"), nullable=False)
 
     users: Mapped[List["User"]] = relationship(
         "User",

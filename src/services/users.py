@@ -19,7 +19,7 @@ class UserService:
         session.add(user)
        
         await session.commit()
-        print(user,type(user))
+        session.refresh(user)
         return user
 
     async def list_users(self, session: AsyncSession, filters: CommonFilters):
